@@ -1,6 +1,15 @@
 @extends('layouts.app')
 
 @section('content')
+@if ($errors->any())
+    <div class="alert alert-danger">
+        <ul>
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
 <div class="container">
     <h1>Editar Empleado de {{ $oficina->nombre }}</h1>
 
@@ -9,7 +18,6 @@
     <form action="{{ route('empleados.update', [$oficina, $empleado]) }}" method="POST">
         @csrf
         @method('PUT')
-
         <div class="mb-3">
             <label for="nombre" class="form-label">Nombre</label>
             <input type="text" class="form-control" id="nombre" name="nombre" value="{{ old('nombre', $empleado->nombre) }}" required>
@@ -43,6 +51,17 @@
         <div class="mb-3">
             <label for="email" class="form-label">Email</label>
             <input type="email" class="form-control" id="email" name="email" value="{{ old('email', $empleado->email) }}" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="oficina_id" class="form-label">Oficina</label>
+            <select class="form-select" id="oficina_id" name="oficina_id" required>
+                @foreach ($oficinas as $oficinaOption)
+                    <option value="{{ $oficinaOption->id }}" {{ $oficinaOption->id == $empleado->oficina_id ? 'selected' : '' }}>
+                        {{ $oficinaOption->nombre }}
+                    </option>
+                @endforeach
+            </select>
         </div>
 
         <button type="submit" class="btn btn-success">Actualizar Empleado</button>

@@ -4,6 +4,10 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\OficinaController;
 use App\Http\Controllers\EmpleadoController;
 
+Route::get("/", function () {
+    return redirect()->route("oficinas.index");
+});
+
 Route::get("/oficinas", [OficinaController::class, "index"])->name(
     "oficinas.index"
 );

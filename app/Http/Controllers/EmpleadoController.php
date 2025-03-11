@@ -30,15 +30,33 @@ class EmpleadoController extends Controller
      */
     public function store(Request $request, Oficina $oficina)
     {
-        $request->validate([
-            "nombre" => "required|string|max:255",
-            "primer_apellido" => "required|string|max:255",
-            "segundo_apellido" => "nullable|string|max:255",
-            "rol" => "nullable|string|max:255",
-            "fecha_nacimiento" => "nullable|date",
-            "dni" => "required|string|max:20|unique:empleados,dni",
-            "email" => "required|email|max:255|unique:empleados,email",
-        ]);
+        $request->validate(
+            [
+                "nombre" => "required|string|max:255",
+                "primer_apellido" => "required|string|max:255",
+                "segundo_apellido" => "nullable|string|max:255",
+                "rol" => "nullable|string|max:255",
+                "fecha_nacimiento" => "nullable|date",
+                "dni" => [
+                    "required",
+                    "string",
+                    "max:20",
+                    "unique:empleados,dni",
+                    "regex:/^[0-9]{8}[A-Za-z]$/",
+                ],
+                "email" => "required|email|max:255|unique:empleados,email",
+            ],
+            [
+                "dni.regex" =>
+                    "El formato del DNI no es válido. Debe tener 8 números seguidos de una letra.",
+                "dni.required" => "El campo DNI es obligatorio.",
+                "dni.unique" => "El DNI ya está registrado en el sistema.",
+                "email.required" => "El campo email es obligatorio.",
+                "email.email" =>
+                    "Debes introducir una dirección de email válida.",
+                "email.unique" => "El email ya está registrado en el sistema.",
+            ]
+        );
 
         $oficina->empleados()->create($request->all());
 
@@ -60,7 +78,11 @@ class EmpleadoController extends Controller
      */
     public function edit(Oficina $oficina, Empleado $empleado)
     {
-        return view("empleados.edit", compact("oficina", "empleado"));
+        $oficinas = Oficina::all();
+        return view(
+            "empleados.edit",
+            compact("oficina", "empleado", "oficinas")
+        );
     }
 
     /**
@@ -71,24 +93,31 @@ class EmpleadoController extends Controller
         Oficina $oficina,
         Empleado $empleado
     ) {
-        // Validación
-        $request->validate([
-            "nombre" => "required|string|max:255",
-            "primer_apellido" => "required|string|max:255",
-            "segundo_apellido" => "nullable|string|max:255",
-            "rol" => "nullable|string|max:255",
-            "fecha_nacimiento" => "nullable|date",
-            "dni" =>
-                "required|string|max:20|unique:empleados,dni," . $empleado->id,
-            "email" =>
-                "required|email|max:255|unique:empleados,email," .
-                $empleado->id,
-        ]);
+        $request->validate(
+            [
+                "nombre" => "required|string|max:255",
+                "primer_apellido" => "required|string|max:255",
+                "segundo_apellido" => "nullable|string|max:255",
+                "rol" => "nullable|string|max:255",
+                "fecha_nacimiento" => "nullable|date",
+                "dni" =>
+                    "required|string|max:20|unique:empleados,dni," .
+                    $empleado->id,
+                "email" =>
+                    "required|email|max:255|unique:empleados,email," .
+                    $empleado->id,
+                "oficina_id" => "required|exists:oficinas,id",
+            ],
+            [
+                "email.required" => "El campo email es obligatorio.",
+                "email.email" =>
+                    "Debes introducir una dirección de email válida.",
+                "email.unique" => "El email ya está registrado en el sistema.",
+            ]
+        );
 
-        // Actualización del empleado
         $empleado->update($request->all());
 
-        // Redireccionar al listado de empleados de la oficina
         return redirect()
             ->route("empleados.index", $oficina)
             ->with("success", "Empleado actualizado correctamente");
